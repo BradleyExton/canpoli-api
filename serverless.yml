@@ -1,0 +1,49 @@
+service: civic-context-api
+
+plugins:
+  - serverless-python-requirements
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: us-east-1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+          Resource: arn:aws:dynamodb:us-east-1:*:table/civic-context-cache
+
+functions:
+  api:
+    handler: api.civic_context.handler.handler
+    events:
+      - httpApi:
+          method: "*"
+          path: "/{proxy+}"
+      - httpApi:
+          method: GET
+          path: /
+
+package:
+  patterns:
+    - "!.venv/**"
+    - "!node_modules/**"
+    - "!.git/**"
+    - "!__pycache__/**"
+    - "!.pytest_cache/**"
+    - "!.mypy_cache/**"
+    - "!tests/**"
+
+custom:
+  pythonRequirements:
+    usePoetry: true
+    slim: true
+    strip: false
+    dockerizePip: false
+    pipCmdExtraArgs:
+      - "--platform"
+      - "manylinux2014_x86_64"
+      - "--only-binary=:all:"
