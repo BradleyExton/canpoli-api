@@ -1,3 +1,4 @@
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Query
@@ -11,12 +12,50 @@ from api.civic_context.routers.civic.models import (
     Representative,
     Representatives,
 )
-from api.civic_context.services.openparliament import get_parliamentary_activity
+from api.civic_context.services.houseofcommons import (
+    HouseOfCommonsData,
+    get_house_of_commons_data,
+)
+from api.civic_context.services.openparliament import (
+    OpenParliamentData,
+    get_parliamentary_activity,
+)
 from api.civic_context.services.represent import get_representatives
 
 logger = get_logger()
 
 router = APIRouter(prefix="/civic", tags=["Civic Context"])
+
+
+def _enrich_federal_representative(
+    base: Representative,
+    op_data: OpenParliamentData | None,
+    hoc_data: HouseOfCommonsData | None,
+) -> Representative:
+    """Combine base representative data with enrichment data into flattened structure."""
+    return Representative(
+        # Core identity (from Represent API)
+        name=base.name,
+        riding=base.riding,
+        party=base.party,
+        email=base.email,
+        # Official profile (from House of Commons)
+        hoc_person_id=hoc_data.hoc_person_id if hoc_data else None,
+        honorific=hoc_data.honorific if hoc_data else None,
+        province=hoc_data.province if hoc_data else None,
+        photo_url=hoc_data.photo_url if hoc_data else None,
+        profile_url=hoc_data.profile_url if hoc_data else None,
+        # Executive roles (from House of Commons)
+        ministerial_role=hoc_data.ministerial_role if hoc_data else None,
+        parliamentary_secretary_role=hoc_data.parliamentary_secretary_role if hoc_data else None,
+        # Parliamentary engagement (from House of Commons)
+        committees=hoc_data.committees if hoc_data else [],
+        parliamentary_associations=hoc_data.parliamentary_associations if hoc_data else [],
+        # Legislative activity (from OpenParliament)
+        openparliament_url=op_data.openparliament_url if op_data else None,
+        bills_sponsored=op_data.bills_sponsored if op_data else [],
+        recent_votes=op_data.recent_votes if op_data else [],
+    )
 
 
 @router.get("/", response_model=CivicContextResponse)
@@ -41,17 +80,30 @@ async def get_civic_context(
     # Fetch from Represent API
     representatives = await get_representatives(lat, lng)
 
-    # Enrich federal MP with OpenParliament data if available
+    # Enrich federal MP with OpenParliament and House of Commons data if available
     if representatives.federal:
-        activity = await get_parliamentary_activity(representatives.federal.name)
-        if activity:
+        # Fetch both data sources in parallel
+        activity_task = get_parliamentary_activity(representatives.federal.name)
+        hoc_task = get_house_of_commons_data(representatives.federal.riding)
+
+        results = await asyncio.gather(
+            activity_task,
+            hoc_task,
+            return_exceptions=True,
+        )
+
+        # Handle partial failures gracefully
+        op_data: OpenParliamentData | None = (
+            results[0] if isinstance(results[0], OpenParliamentData) else None
+        )
+        hoc_data: HouseOfCommonsData | None = (
+            results[1] if isinstance(results[1], HouseOfCommonsData) else None
+        )
+
+        if op_data or hoc_data:
             representatives = Representatives(
-                federal=Representative(
-                    name=representatives.federal.name,
-                    party=representatives.federal.party,
-                    riding=representatives.federal.riding,
-                    email=representatives.federal.email,
-                    parliamentary_activity=activity,
+                federal=_enrich_federal_representative(
+                    representatives.federal, op_data, hoc_data
                 ),
                 provincial=representatives.provincial,
                 municipal=representatives.municipal,

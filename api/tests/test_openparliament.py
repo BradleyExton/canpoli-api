@@ -4,7 +4,6 @@ import httpx
 import pytest
 
 from api.civic_context.services.openparliament import (
-    _fetch_committees,
     _fetch_recent_votes,
     _fetch_sponsored_bills,
     _normalize_name,
@@ -242,59 +241,6 @@ class TestFetchRecentVotes:
 
 
 @pytest.mark.asyncio
-class TestFetchCommittees:
-    """Tests for committee fetching."""
-
-    async def test_fetch_committees_success(self):
-        """Test successful committee fetching."""
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "memberships": [
-                {
-                    "committee": {
-                        "name": {"en": "Standing Committee on Finance", "fr": "Finances"},
-                        "short_name": {"en": "FINA", "fr": "FINA"},
-                    }
-                }
-            ]
-        }
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = MagicMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
-
-        result = await _fetch_committees(mock_client, "john-doe")
-
-        assert len(result) == 1
-        assert result[0].name == "Standing Committee on Finance"
-        assert result[0].acronym == "FINA"
-
-    async def test_fetch_committees_no_memberships(self):
-        """Test MP with no committee memberships."""
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {"memberships": []}
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = MagicMock()
-        mock_client.get = AsyncMock(return_value=mock_response)
-
-        result = await _fetch_committees(mock_client, "john-doe")
-
-        assert result == []
-
-    async def test_fetch_committees_timeout(self):
-        """Test timeout returns empty list."""
-        mock_client = MagicMock()
-        mock_client.get = AsyncMock(side_effect=httpx.TimeoutException("timeout"))
-
-        result = await _fetch_committees(mock_client, "john-doe")
-
-        assert result == []
-
-
-@pytest.mark.asyncio
 class TestGetParliamentaryActivity:
     """Tests for the main orchestration function."""
 
@@ -338,17 +284,6 @@ class TestGetParliamentaryActivity:
                             }
                         ]
                     }
-                elif url == "/politicians/john-doe/":
-                    mock_response.json.return_value = {
-                        "memberships": [
-                            {
-                                "committee": {
-                                    "name": {"en": "Finance"},
-                                    "short_name": {"en": "FINA"},
-                                }
-                            }
-                        ]
-                    }
                 elif url == "/bills/":
                     mock_response.json.return_value = {
                         "objects": [
@@ -384,7 +319,6 @@ class TestGetParliamentaryActivity:
             assert result.openparliament_url == "john-doe"
             assert len(result.bills_sponsored) == 1
             assert len(result.recent_votes) == 1
-            assert len(result.committees) == 1
 
     async def test_partial_failure_still_returns_data(self):
         """Test that failure in one request doesn't fail others."""
@@ -421,17 +355,6 @@ class TestGetParliamentaryActivity:
                             }
                         ]
                     }
-                elif url == "/politicians/john-doe/":
-                    mock_response.json.return_value = {
-                        "memberships": [
-                            {
-                                "committee": {
-                                    "name": {"en": "Finance"},
-                                    "short_name": {"en": "FINA"},
-                                }
-                            }
-                        ]
-                    }
                 else:
                     mock_response.json.return_value = {}
 
@@ -446,4 +369,3 @@ class TestGetParliamentaryActivity:
             assert result is not None
             assert result.bills_sponsored == []  # Failed, so empty
             assert len(result.recent_votes) == 1  # Succeeded
-            assert len(result.committees) == 1  # Succeeded

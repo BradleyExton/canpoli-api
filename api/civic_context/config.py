@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     openparliament_bills_limit: int = 5
     openparliament_votes_limit: int = 10
 
+    # House of Commons API
+    hoc_api_base_url: str = "https://www.ourcommons.ca"
+    hoc_api_timeout: float = 10.0
+    hoc_contact_email: str = "contact@example.com"
+
     # Cache Configuration
     cache_ttl_seconds: int = 3600
 

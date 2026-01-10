@@ -1,6 +1,7 @@
 """OpenParliament.ca API client for MP parliamentary activity."""
 
 import asyncio
+from dataclasses import dataclass
 
 import httpx
 
@@ -8,13 +9,20 @@ from api.civic_context.config import get_settings
 from api.civic_context.logging_config import get_logger
 from api.civic_context.routers.civic.models import (
     Bill,
-    Committee,
-    ParliamentaryActivity,
     VoteRecord,
 )
 
 logger = get_logger()
 settings = get_settings()
+
+
+@dataclass
+class OpenParliamentData:
+    """Data fetched from OpenParliament API."""
+
+    openparliament_url: str | None
+    bills_sponsored: list[Bill]
+    recent_votes: list[VoteRecord]
 
 
 def _get_headers() -> dict[str, str]:
@@ -207,63 +215,7 @@ async def _fetch_recent_votes(
         return []
 
 
-async def _fetch_committees(
-    client: httpx.AsyncClient, slug: str
-) -> list[Committee]:
-    """Fetch current committee memberships for the politician."""
-    try:
-        # Fetch the politician's full profile to get committee memberships
-        response = await client.get(f"/politicians/{slug}/")
-
-        if response.status_code == 429:
-            logger.warning("OpenParliament rate limited on committees request")
-            return []
-
-        response.raise_for_status()
-        data = response.json()
-
-        committees = []
-        memberships = data.get("memberships", [])
-
-        for membership in memberships:
-            try:
-                committee_info = membership.get("committee", {})
-                if not committee_info:
-                    continue
-
-                # Handle bilingual name
-                name = committee_info.get("name", {})
-                if isinstance(name, dict):
-                    name = name.get("en", name.get("fr", "Unknown"))
-
-                short_name = committee_info.get("short_name", {})
-                if isinstance(short_name, dict):
-                    short_name = short_name.get("en", short_name.get("fr"))
-
-                committees.append(
-                    Committee(
-                        name=name,
-                        acronym=short_name,
-                    )
-                )
-            except Exception as e:
-                logger.warning(f"Failed to parse committee: {e}")
-                continue
-
-        return committees
-
-    except httpx.TimeoutException:
-        logger.warning(f"OpenParliament committees timeout for {slug}")
-        return []
-    except httpx.HTTPStatusError as e:
-        logger.warning(f"OpenParliament committees error: {e.response.status_code}")
-        return []
-    except Exception as e:
-        logger.error(f"OpenParliament committees unexpected error: {e}")
-        return []
-
-
-async def get_parliamentary_activity(mp_name: str) -> ParliamentaryActivity | None:
+async def get_parliamentary_activity(mp_name: str) -> OpenParliamentData | None:
     """
     Fetch parliamentary activity for an MP by name.
 
@@ -280,19 +232,17 @@ async def get_parliamentary_activity(mp_name: str) -> ParliamentaryActivity | No
             logger.info(f"MP not found in OpenParliament: {mp_name}")
             return None
 
-        # Step 2: Fetch all activity data in parallel
+        # Step 2: Fetch bills and votes in parallel
         bills_task = _fetch_sponsored_bills(client, slug)
         votes_task = _fetch_recent_votes(client, slug)
-        committees_task = _fetch_committees(client, slug)
 
         results = await asyncio.gather(
             bills_task,
             votes_task,
-            committees_task,
             return_exceptions=True,
         )
 
-        bills_result, votes_result, committees_result = results
+        bills_result, votes_result = results
 
         # Handle partial failures gracefully
         bills_list: list[Bill] = (
@@ -301,13 +251,9 @@ async def get_parliamentary_activity(mp_name: str) -> ParliamentaryActivity | No
         votes_list: list[VoteRecord] = (
             votes_result if isinstance(votes_result, list) else []
         )
-        committees_list: list[Committee] = (
-            committees_result if isinstance(committees_result, list) else []
-        )
 
-        return ParliamentaryActivity(
+        return OpenParliamentData(
             openparliament_url=slug,
             bills_sponsored=bills_list,
             recent_votes=votes_list,
-            committees=committees_list,
         )

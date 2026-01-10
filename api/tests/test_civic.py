@@ -66,6 +66,7 @@ class TestCivicEndpoint:
 
     def test_civic_endpoint_cache_hit(self, client):
         """Test that cached response is returned when available."""
+        # Cached data with flattened structure
         cached_data = {
             "representatives": {
                 "federal": {
@@ -73,6 +74,18 @@ class TestCivicEndpoint:
                     "party": "Test Party",
                     "riding": "Test Riding",
                     "email": None,
+                    "hoc_person_id": None,
+                    "honorific": None,
+                    "province": None,
+                    "photo_url": None,
+                    "profile_url": None,
+                    "ministerial_role": None,
+                    "parliamentary_secretary_role": None,
+                    "committees": [],
+                    "parliamentary_associations": [],
+                    "openparliament_url": None,
+                    "bills_sponsored": [],
+                    "recent_votes": [],
                 },
                 "provincial": None,
                 "municipal": None,
