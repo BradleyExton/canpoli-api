@@ -57,6 +57,8 @@ def _parse_representatives(objects: list[dict]) -> Representatives:
             party=rep.get("party_name"),
             riding=rep.get("district_name", "Unknown"),
             email=rep.get("email"),
+            photo_url=rep.get("photo_url"),
+            profile_url=rep.get("source_url"),
         )
 
         # Determine government level
