@@ -16,9 +16,16 @@ class Settings(BaseSettings):
     aws_region: str = "us-east-1"
     dynamodb_table_name: str = "civic-context-cache"
 
-    # External API
+    # External APIs
     represent_api_base_url: str = "https://represent.opennorth.ca"
     represent_api_timeout: float = 10.0
+
+    # OpenParliament API
+    openparliament_api_base_url: str = "https://api.openparliament.ca"
+    openparliament_api_timeout: float = 8.0
+    openparliament_contact_email: str = "contact@example.com"
+    openparliament_bills_limit: int = 5
+    openparliament_votes_limit: int = 10
 
     # Cache Configuration
     cache_ttl_seconds: int = 3600
