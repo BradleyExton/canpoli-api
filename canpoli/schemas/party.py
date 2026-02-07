@@ -9,6 +9,7 @@ class PartyResponse(BaseSchema):
     name: str
     short_name: str | None = None
     color: str | None = None
+    seat_count: int | None = None
 
 
 class PartyListResponse(PaginatedResponse):

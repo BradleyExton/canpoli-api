@@ -7,8 +7,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from canpoli.database import get_session
 from canpoli.rate_limit import rate_limit_dependency
-from canpoli.repositories import RepresentativeRepository, RidingRepository
-from canpoli.schemas import RepresentativeDetailResponse, RepresentativeListResponse
+from canpoli.repositories import (
+    RepresentativeRepository,
+    RepresentativeRoleRepository,
+    RidingRepository,
+)
+from canpoli.schemas import (
+    RepresentativeDetailResponse,
+    RepresentativeListResponse,
+    RepresentativeRoleSummary,
+    RepresentativeRoleListResponse,
+    RepresentativeRoleResponse,
+)
 
 router = APIRouter(
     tags=["Representatives"],
@@ -122,4 +132,47 @@ async def get_representative(
     if not rep:
         raise HTTPException(status_code=404, detail="Representative not found")
 
-    return RepresentativeDetailResponse.model_validate(rep)
+    roles_repo = RepresentativeRoleRepository(session)
+    roles = await roles_repo.list_current_for_representative(rep.id)
+    response = RepresentativeDetailResponse.model_validate(rep)
+    response.current_roles = [
+        RepresentativeRoleSummary.model_validate(role) for role in roles
+    ]
+    return response
+
+
+@router.get("/{hoc_id}/roles", response_model=RepresentativeRoleListResponse)
+async def list_representative_roles(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    hoc_id: int,
+    current: Annotated[bool | None, Query(description="Filter by current roles")] = None,
+    role_type: Annotated[str | None, Query(description="Filter by role type")] = None,
+    parliament: Annotated[int | None, Query(description="Filter by parliament number")] = None,
+    session_number: Annotated[int | None, Query(description="Filter by session number")] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> RepresentativeRoleListResponse:
+    """Get roles for a specific representative."""
+    repo = RepresentativeRoleRepository(session)
+    roles = await repo.list_with_filters(
+        hoc_id=hoc_id,
+        role_type=role_type,
+        current=current,
+        parliament=parliament,
+        session=session_number,
+        limit=limit,
+        offset=offset,
+    )
+    total = await repo.count_with_filters(
+        hoc_id=hoc_id,
+        role_type=role_type,
+        current=current,
+        parliament=parliament,
+        session=session_number,
+    )
+    return RepresentativeRoleListResponse(
+        roles=[RepresentativeRoleResponse.model_validate(role) for role in roles],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )

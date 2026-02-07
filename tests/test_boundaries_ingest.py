@@ -157,6 +157,7 @@ async def test_ingest_boundaries_normalizes_pruid(postgis_session, tmp_path):
         geojson_path=geojson_path,
         name_field=None,
         province_field=None,
+        session=postgis_session,
     )
 
     assert stats["total"] == 1

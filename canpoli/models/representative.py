@@ -11,6 +11,7 @@ from canpoli.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from canpoli.models.party import Party
+    from canpoli.models.representative_role import RepresentativeRole
     from canpoli.models.riding import Riding
 
 
@@ -48,6 +49,9 @@ class Representative(Base, TimestampMixin):
     # Relationships
     party: Mapped[Party | None] = relationship(back_populates="representatives")
     riding: Mapped[Riding | None] = relationship(back_populates="representatives")
+    roles: Mapped[list[RepresentativeRole]] = relationship(
+        back_populates="representative"
+    )
 
     __table_args__ = (
         Index("ix_representatives_hoc_id", "hoc_id"),

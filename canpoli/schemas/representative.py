@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from canpoli.schemas.base import BaseSchema, PaginatedResponse
 from canpoli.schemas.party import PartyResponse
+from canpoli.schemas.representative_role import RepresentativeRoleSummary
 
 
 class RepresentativeResponse(BaseSchema):
@@ -37,6 +38,7 @@ class RepresentativeDetailResponse(RepresentativeResponse):
 
     party: PartyResponse | None = None
     riding: NestedRidingResponse | None = None
+    current_roles: list[RepresentativeRoleSummary] | None = None
 
 
 class RepresentativeListResponse(PaginatedResponse):

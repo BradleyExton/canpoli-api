@@ -31,6 +31,9 @@ poetry run alembic upgrade head
 # Ingest data from House of Commons
 poetry run python -m canpoli.cli.ingest
 
+# Ingest parliamentary data (roles, votes, bills, petitions, debates, expenditures)
+poetry run python -m canpoli.cli.ingest_parliament
+
 # Ingest riding boundaries (GeoJSON) for lat/lng lookup
 poetry run python -m canpoli.cli.ingest_boundaries --geojson /path/to/boundaries.geojson
 
@@ -68,6 +71,45 @@ poetry run uvicorn canpoli.main:app --reload
 
 ### Parties
 - `GET /v1/parties` - All political parties
+  - Query params: `include_standings`, `parliament`, `session_number`
+
+### Roles
+- `GET /v1/roles` - Roles list
+  - Query params: `hoc_id`, `current`, `role_type`, `parliament`, `session_number`, `limit`, `offset`
+- `GET /v1/roles/representatives/{hoc_id}` - Roles for a representative
+
+### Party Standings
+- `GET /v1/party-standings` - Latest party seat counts
+  - Query params: `parliament`, `session_number`, `as_of_date`, `limit`, `offset`
+
+### Bills
+- `GET /v1/bills` - Bills list
+  - Query params: `bill_number`, `status`, `sponsor_hoc_id`, `updated_since`, `parliament`, `session_number`, `limit`, `offset`
+- `GET /v1/bills/{bill_id}` - Bill detail
+
+### Votes
+- `GET /v1/votes` - Votes list
+  - Query params: `date`, `decision`, `bill_number`, `parliament`, `session_number`, `include_members`, `limit`, `offset`
+- `GET /v1/votes/{vote_id}` - Vote detail (includes members by default)
+
+### Petitions
+- `GET /v1/petitions` - Petitions list
+  - Query params: `status`, `sponsor_hoc_id`, `from_date`, `to_date`, `parliament`, `session_number`, `limit`, `offset`
+- `GET /v1/petitions/{petition_id}` - Petition detail
+
+### Debates
+- `GET /v1/debates` - Debates list
+  - Query params: `date`, `language`, `sitting`, `parliament`, `session_number`, `limit`, `offset`
+- `GET /v1/debates/{debate_id}` - Debate detail
+  - Query params: `include_interventions`
+
+### Expenditures
+- `GET /v1/expenditures/members` - Member expenditures list
+  - Query params: `fiscal_year`, `category`, `limit`, `offset`
+- `GET /v1/expenditures/members/{hoc_id}` - Expenditures for a member
+  - Query params: `fiscal_year`, `category`, `limit`, `offset`
+- `GET /v1/expenditures/house-officers` - House officer expenditures
+  - Query params: `fiscal_year`, `category`, `limit`, `offset`
 
 Unversioned routes are also available for backwards compatibility.
 
@@ -108,4 +150,4 @@ in a route; the event should appear in Sentry.
 
 ## Data Source
 
-MP data is sourced from the [House of Commons Open Data API](https://www.ourcommons.ca/Members/en/search/XML).
+MP data is sourced from the House of Commons Open Data API and LEGISinfo (for bills), along with House of Commons votes, petitions, Hansard debates, and proactive disclosure feeds.

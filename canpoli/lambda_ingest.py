@@ -15,6 +15,7 @@ import urllib.request
 
 from canpoli.cli.ingest_boundaries import ingest_boundaries
 from canpoli.services.hoc_ingestion import HoCIngestionService
+from canpoli.services.hoc_parliament_ingestion import HoCParliamentIngestionService
 from canpoli.sentry import init_sentry
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,18 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     stats = asyncio.run(HoCIngestionService().ingest())
     logger.info("HoC ingestion complete: %s", stats)
 
+    parliament_ingest = os.environ.get("ENABLE_PARLIAMENT_INGEST", "").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    if parliament_ingest:
+        logger.info("Starting parliamentary ingestion")
+        parliament_stats = asyncio.run(HoCParliamentIngestionService().ingest())
+        logger.info("Parliamentary ingestion complete: %s", parliament_stats)
+    else:
+        parliament_stats = None
+
     boundary_url = os.environ.get("BOUNDARY_GEOJSON_URL")
     if boundary_url:
         logger.info("Refreshing boundaries from %s", boundary_url)
@@ -51,7 +64,8 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         return {
             "status": "ok",
             "stats": stats,
+            "parliament_stats": parliament_stats,
             "boundary_stats": boundary_stats,
         }
 
-    return {"status": "ok", "stats": stats}
+    return {"status": "ok", "stats": stats, "parliament_stats": parliament_stats}
