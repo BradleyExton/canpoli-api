@@ -1,46 +1,115 @@
-service: civic-context-api
+service: canpoli-api
 
 provider:
   name: aws
   runtime: python3.12
-  region: us-east-1
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-          Resource: arn:aws:dynamodb:us-east-1:*:table/civic-context-cache
+  region: ca-central-1
+  memorySize: 512
+  timeout: 30
+  environment:
+    # Database URL from Secrets Manager
+    DATABASE_URL: "{{resolve:secretsmanager:canpoli/database-url:SecretString:DATABASE_URL}}"
+    LOG_LEVEL: INFO
+    CORS_ORIGINS: '[]'  # Update with your domain: '["https://yourdomain.com"]'
+  # VPC configuration for RDS access (create these resources in AWS Console first)
+  # Uncomment after creating VPC resources and storing IDs in SSM
+  vpc:
+    securityGroupIds:
+      - sg-065816c7e494251a9
+    subnetIds:
+      - subnet-0e95cda927d31c4b2
+      - subnet-0e995cc918a9cff68
+      - subnet-0a625f93d8bc86357
 
 functions:
   api:
-    handler: api.civic_context.handler.handler
+    handler: canpoli.lambda_handler.handler
     events:
+      # Catch-all route for FastAPI
       - httpApi:
-          method: "*"
-          path: "/{proxy+}"
+          method: '*'
+          path: '/{proxy+}'
+      # Root path
       - httpApi:
           method: GET
           path: /
+  ingest:
+    handler: canpoli.lambda_ingest.handler
+    timeout: 300
+    events:
+      - schedule: rate(1 day)
 
-package:
-  patterns:
-    - "!.venv/**"
-    - "!node_modules/**"
-    - "!.git/**"
-    - "!__pycache__/**"
-    - "!.pytest_cache/**"
-    - "!.mypy_cache/**"
-    - "!tests/**"
+plugins:
+  - serverless-python-requirements
 
 custom:
   pythonRequirements:
-    usePoetry: true
+    # Use Docker to build dependencies for Lambda Linux environment
+    dockerizePip: true
+    # Reduce package size
     slim: true
+    # Keep binary files intact (needed for asyncpg)
     strip: false
-    dockerizePip: false
-    pipCmdExtraArgs:
-      - "--platform"
-      - "manylinux2014_x86_64"
-      - "--only-binary=:all:"
+    # Use Poetry for dependency resolution
+    usePoetry: true
+    # Exclude dev dependencies
+    poetryWithoutDev: true
+
+package:
+  patterns:
+    # Include application code
+    - 'canpoli/**'
+    # Exclude unnecessary files
+    - '!tests/**'
+    - '!alembic/**'
+    - '!.git/**'
+    - '!.pytest_cache/**'
+    - '!.mypy_cache/**'
+    - '!.ruff_cache/**'
+    - '!*.md'
+    - '!Dockerfile'
+    - '!docker-compose*.yml'
+    - '!.env*'
+
+resources:
+  Resources:
+    AlarmTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: canpoli-alarms
+    ApiErrorsAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: canpoli-api-errors
+        Namespace: AWS/Lambda
+        MetricName: Errors
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: ApiLambdaFunction
+        Statistic: Sum
+        Period: 300
+        EvaluationPeriods: 1
+        Threshold: 1
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        TreatMissingData: notBreaching
+        AlarmActions:
+          - Ref: AlarmTopic
+    IngestErrorsAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: canpoli-ingest-errors
+        Namespace: AWS/Lambda
+        MetricName: Errors
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: IngestLambdaFunction
+        Statistic: Sum
+        Period: 900
+        EvaluationPeriods: 1
+        Threshold: 1
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        TreatMissingData: notBreaching
+        AlarmActions:
+          - Ref: AlarmTopic

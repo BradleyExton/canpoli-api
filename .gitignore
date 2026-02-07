@@ -4,40 +4,60 @@ __pycache__/
 *$py.class
 *.so
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
 .venv/
 venv/
 ENV/
-.eggs/
-*.egg-info/
-*.egg
 
-# Testing/Coverage
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
-# Type checking
-.mypy_cache/
+# Environment variables
+.env
+.env.*
+!.env.example
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*~
 
-# Environment
-.env
-.env.local
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
 
-# AWS/Serverless
+# Type checking / Linting
+.mypy_cache/
+.ruff_cache/
+
+# Serverless Framework
 .serverless/
 node_modules/
+
+# AWS SAM
+.aws-sam/
+
+# Logs
+*.log
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Build
-dist/
-build/
