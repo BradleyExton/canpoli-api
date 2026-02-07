@@ -6,10 +6,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from canpoli.database import get_session
+from canpoli.rate_limit import rate_limit_dependency
 from canpoli.repositories import RepresentativeRepository, RidingRepository
 from canpoli.schemas import RepresentativeDetailResponse, RepresentativeListResponse
 
-router = APIRouter(prefix="/v1/representatives", tags=["Representatives"])
+router = APIRouter(
+    tags=["Representatives"],
+    dependencies=[Depends(rate_limit_dependency)],
+)
 
 
 @router.get("", response_model=RepresentativeListResponse)

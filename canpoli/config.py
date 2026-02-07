@@ -44,7 +44,47 @@ class Settings(BaseSettings):
     )
 
     # Rate Limiting
-    rate_limit_per_minute: int = Field(default=100, ge=1, le=1000)
+    rate_limit_per_minute: int = Field(
+        default=100,
+        ge=1,
+        le=1000,
+        description="Deprecated: use free_rate_limit_per_minute/paid_rate_limit_per_minute.",
+    )
+    free_rate_limit_per_minute: int = Field(default=50, ge=1, le=1000)
+    paid_rate_limit_per_minute: int = Field(default=500, ge=1, le=10000)
+    redis_url: str | None = Field(
+        default=None,
+        description="Redis URL for rate limiting and usage tracking.",
+    )
+
+    # API Keys
+    api_key_hmac_secret: str | None = Field(
+        default=None,
+        description="Secret used to hash API keys (HMAC-SHA256).",
+    )
+
+    # Stripe Billing
+    stripe_secret_key: str | None = Field(default=None)
+    stripe_webhook_secret: str | None = Field(default=None)
+    stripe_price_id: str | None = Field(default=None)
+    stripe_checkout_success_url: str | None = Field(default=None)
+    stripe_checkout_cancel_url: str | None = Field(default=None)
+    stripe_portal_return_url: str | None = Field(default=None)
+
+    # Clerk Auth
+    clerk_jwks_url: str | None = Field(default=None)
+    clerk_issuer: str | None = Field(default=None)
+    clerk_audience: str | None = Field(default=None)
+
+    # Sentry
+    sentry_dsn: str | None = Field(default=None)
+    sentry_environment: str | None = Field(
+        default=None,
+        description="Sentry environment (e.g., development, staging, production).",
+    )
+    sentry_release: str | None = Field(default=None)
+    sentry_send_default_pii: bool = Field(default=False)
+    sentry_traces_sample_rate: float | None = Field(default=None, ge=0.0, le=1.0)
 
     # Application
     debug: bool = False

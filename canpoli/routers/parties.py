@@ -6,10 +6,14 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from canpoli.database import get_session
+from canpoli.rate_limit import rate_limit_dependency
 from canpoli.repositories import PartyRepository
 from canpoli.schemas import PartyListResponse, PartyResponse
 
-router = APIRouter(prefix="/v1/parties", tags=["Parties"])
+router = APIRouter(
+    tags=["Parties"],
+    dependencies=[Depends(rate_limit_dependency)],
+)
 
 
 @router.get("", response_model=PartyListResponse)

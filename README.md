@@ -43,6 +43,16 @@ poetry run uvicorn canpoli.main:app --reload
 ### Health
 - `GET /health` - API and database status
 
+### Account (requires Clerk JWT)
+- `GET /v1/account/api-key` - Get masked API key (may include one-time reveal)
+- `POST /v1/account/api-key/rotate` - Rotate API key
+- `GET /v1/account/usage` - Usage for current billing period
+
+### Billing (requires Clerk JWT except webhook)
+- `POST /v1/billing/checkout` - Create Stripe Checkout session
+- `POST /v1/billing/portal` - Create Stripe Billing Portal session
+- `POST /v1/billing/webhook` - Stripe webhook endpoint
+
 ### Representatives
 - `GET /v1/representatives` - Paginated list of representatives
   - Query params: `province`, `party`, `limit`, `offset`
@@ -58,6 +68,8 @@ poetry run uvicorn canpoli.main:app --reload
 
 ### Parties
 - `GET /v1/parties` - All political parties
+
+Unversioned routes are also available for backwards compatibility.
 
 ## Development
 
@@ -79,6 +91,20 @@ poetry run ruff format .
 # Type check
 poetry run mypy canpoli
 ```
+
+## Sentry
+
+Set at minimum `SENTRY_DSN` to enable error tracking. Optional settings include
+`SENTRY_ENVIRONMENT`, `SENTRY_RELEASE`, `SENTRY_SEND_DEFAULT_PII`, and
+`SENTRY_TRACES_SAMPLE_RATE` (leave empty to keep tracing disabled).
+
+To verify locally, run the API with `SENTRY_DSN` set and trigger an exception
+in a route; the event should appear in Sentry.
+
+## Rate Limits
+
+- Free: 50 req/min by IP (no API key needed)
+- Paid: 500 req/min by API key (`X-API-Key`)
 
 ## Data Source
 

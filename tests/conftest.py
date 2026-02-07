@@ -18,10 +18,13 @@ os.environ.setdefault(
     "DATABASE_URL",
     "sqlite+aiosqlite:///:memory:",
 )
+os.environ["REDIS_URL"] = ""
 
 from canpoli.database import get_session  # noqa: E402
 from canpoli.main import app  # noqa: E402
 
+from canpoli.config import get_settings  # noqa: E402
+from canpoli import redis_client  # noqa: E402
 
 # Test database URL (SQLite in-memory for speed)
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -29,6 +32,22 @@ POSTGIS_TEST_DATABASE_URL_ENV = os.environ.get("POSTGIS_TEST_DATABASE_URL")
 POSTGIS_TEST_DATABASE_URL = POSTGIS_TEST_DATABASE_URL_ENV or (
     "postgresql+asyncpg://canpoli:canpoli_dev@localhost:5433/canpoli_test"
 )
+
+
+@pytest.fixture(autouse=True)
+def reset_settings_cache():
+    """Ensure settings are reloaded when tests modify env vars."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def reset_redis_client():
+    """Avoid leaking Redis clients across tests."""
+    redis_client._redis_client = None
+    yield
+    redis_client._redis_client = None
 
 
 @pytest.fixture(scope="session")

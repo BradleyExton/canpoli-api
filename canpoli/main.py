@@ -4,15 +4,16 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
 
 from canpoli.config import get_settings
 from canpoli.logging_config import setup_logging
-from canpoli.rate_limit import get_limiter
+from canpoli.sentry import init_sentry
+from canpoli.rate_limit import increment_usage
 from canpoli.routers import (
+    account_router,
+    billing_router,
     health_router,
     parties_router,
     representatives_router,
@@ -21,6 +22,7 @@ from canpoli.routers import (
 
 # Initialize logging before anything else
 setup_logging()
+init_sentry()
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -48,8 +50,8 @@ if settings.cors_origins:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=True,
-        allow_methods=["GET", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type"],
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "X-API-Key"],
     )
     logger.info("CORS configured with origins: %s", settings.cors_origins)
 else:
@@ -58,20 +60,32 @@ else:
         CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=False,
-        allow_methods=["GET", "OPTIONS"],
-        allow_headers=["Content-Type"],
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "X-API-Key", "Authorization"],
     )
     logger.warning("CORS configured with wildcard origins (development mode)")
-
-# Configure rate limiting
-limiter = get_limiter()
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Health check (no version prefix)
 app.include_router(health_router)
 
-# Versioned API endpoints
-app.include_router(representatives_router)
-app.include_router(ridings_router)
-app.include_router(parties_router)
+# Account and billing endpoints
+app.include_router(account_router)
+app.include_router(billing_router)
+
+# Unversioned API endpoints
+app.include_router(representatives_router, prefix="/representatives")
+app.include_router(ridings_router, prefix="/ridings")
+app.include_router(parties_router, prefix="/parties")
+
+# Backwards-compatible versioned API endpoints
+app.include_router(representatives_router, prefix="/v1/representatives", include_in_schema=False)
+app.include_router(ridings_router, prefix="/v1/ridings", include_in_schema=False)
+app.include_router(parties_router, prefix="/v1/parties", include_in_schema=False)
+
+
+@app.middleware("http")
+async def usage_middleware(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code < 400:
+        await increment_usage(request)
+    return response

@@ -15,8 +15,10 @@ import urllib.request
 
 from canpoli.cli.ingest_boundaries import ingest_boundaries
 from canpoli.services.hoc_ingestion import HoCIngestionService
+from canpoli.sentry import init_sentry
 
 logger = logging.getLogger(__name__)
+init_sentry()
 
 
 def _download_to_temp(url: str) -> Path:
