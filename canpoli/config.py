@@ -1,19 +1,31 @@
 """Application configuration loaded from environment variables."""
 
 import os
+import sys
 from functools import lru_cache
 
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+_env_file = None
+_env_file_override = os.environ.get("CANPOLI_ENV_FILE")
+if _env_file_override is not None:
+    _env_file = _env_file_override or None
+elif "PYTEST_CURRENT_TEST" in os.environ or "pytest" in sys.modules:
+    _env_file = None
+else:
+    _env_file = ".env"
+
+
 class Settings(BaseSettings):
     """Application configuration."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_env_file,
         env_file_encoding="utf-8",
         case_sensitive=False,
+        env_ignore_empty=True,
     )
 
     # PostgreSQL Configuration - REQUIRED, no default with credentials
@@ -36,6 +48,21 @@ class Settings(BaseSettings):
     # House of Commons API
     hoc_api_base_url: str = "https://www.ourcommons.ca"
     hoc_api_timeout: float = 10.0
+    hoc_parliament: int = Field(default=45, ge=1)
+    hoc_session: int = Field(default=1, ge=1)
+    hoc_max_concurrency: int = Field(default=4, ge=1, le=20)
+    hoc_min_request_interval_ms: int = Field(default=250, ge=0, le=5000)
+    hoc_debates_max_sitting: int = Field(default=200, ge=1, le=1000)
+    hoc_debates_lookahead: int = Field(default=10, ge=1, le=100)
+    hoc_debates_max_missing: int = Field(default=20, ge=1, le=200)
+    hoc_debate_languages: list[str] = Field(default_factory=lambda: ["en", "fr"])
+    hoc_enable_roles: bool = True
+    hoc_enable_party_standings: bool = True
+    hoc_enable_votes: bool = True
+    hoc_enable_petitions: bool = True
+    hoc_enable_debates: bool = True
+    hoc_enable_expenditures: bool = True
+    hoc_enable_bills: bool = True
 
     # CORS Configuration
     cors_origins: list[str] = Field(
@@ -87,6 +114,10 @@ class Settings(BaseSettings):
     sentry_traces_sample_rate: float | None = Field(default=None, ge=0.0, le=1.0)
 
     # Application
+    environment: str = Field(
+        default="development",
+        description="Deployment environment (development, test, staging, production).",
+    )
     debug: bool = False
     log_level: str = "INFO"
 

@@ -19,6 +19,7 @@ os.environ.setdefault(
     "sqlite+aiosqlite:///:memory:",
 )
 os.environ["REDIS_URL"] = ""
+os.environ.setdefault("ENVIRONMENT", "test")
 
 from canpoli.database import get_session  # noqa: E402
 from canpoli.main import app  # noqa: E402

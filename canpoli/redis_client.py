@@ -65,9 +65,12 @@ async def get_redis() -> redis.Redis | InMemoryRedis:
 
     settings = get_settings()
     if not settings.redis_url:
-        logger.warning("REDIS_URL not configured; using in-memory counters")
-        _redis_client = InMemoryRedis()
-        return _redis_client
+        environment = (settings.environment or "development").lower()
+        if environment in {"development", "dev", "test", "testing"}:
+            logger.warning("REDIS_URL not configured; using in-memory counters")
+            _redis_client = InMemoryRedis()
+            return _redis_client
+        raise RuntimeError("REDIS_URL is required outside development/test")
 
     _redis_client = redis.from_url(
         settings.redis_url,

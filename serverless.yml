@@ -10,6 +10,7 @@ provider:
     # Database URL from Secrets Manager
     DATABASE_URL: "{{resolve:secretsmanager:canpoli/database-url:SecretString:DATABASE_URL}}"
     LOG_LEVEL: INFO
+    ENVIRONMENT: "production"
     CORS_ORIGINS: '[]'  # Update with your domain: '["https://yourdomain.com"]'
     REDIS_URL: "{{resolve:ssm:/canpoli/redis-url}}"
     FREE_RATE_LIMIT_PER_MINUTE: 50

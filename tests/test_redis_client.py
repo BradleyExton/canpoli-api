@@ -35,6 +35,7 @@ async def test_inmemoryredis_basic_ops(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_redis_fallback(monkeypatch):
     monkeypatch.setenv("REDIS_URL", "")
+    monkeypatch.setenv("ENVIRONMENT", "test")
     get_settings.cache_clear()
     redis_client._redis_client = None
 
@@ -45,8 +46,20 @@ async def test_get_redis_fallback(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_redis_with_url(monkeypatch):
     monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
+    monkeypatch.setenv("ENVIRONMENT", "production")
     get_settings.cache_clear()
     redis_client._redis_client = None
 
     client = await get_redis()
     assert not isinstance(client, InMemoryRedis)
+
+
+@pytest.mark.asyncio
+async def test_get_redis_missing_in_production_raises(monkeypatch):
+    monkeypatch.setenv("REDIS_URL", "")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    get_settings.cache_clear()
+    redis_client._redis_client = None
+
+    with pytest.raises(RuntimeError, match="REDIS_URL is required"):
+        await get_redis()
