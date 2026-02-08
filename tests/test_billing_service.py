@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import timezone
 from types import SimpleNamespace
 
 import pytest
@@ -100,9 +100,7 @@ async def test_handle_webhook_checkout_creates_key(test_session, monkeypatch):
     assert int(billing.current_period_start.replace(tzinfo=timezone.utc).timestamp()) == 1000
     assert int(billing.current_period_end.replace(tzinfo=timezone.utc).timestamp()) == 2000
 
-    result = await test_session.execute(
-        select(ApiKey).where(ApiKey.user_id == user.id)
-    )
+    result = await test_session.execute(select(ApiKey).where(ApiKey.user_id == user.id))
     api_key = result.scalar_one()
     assert api_key.active is True
 

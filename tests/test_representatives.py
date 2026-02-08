@@ -67,9 +67,7 @@ async def test_lookup_representative_missing_inputs(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_lookup_representative_both_inputs(client: AsyncClient):
     """Lookup representative rejects postal code with lat/lng."""
-    response = await client.get(
-        "/v1/representatives/lookup?postal_code=K1A0A6&lat=45.4&lng=-75.7"
-    )
+    response = await client.get("/v1/representatives/lookup?postal_code=K1A0A6&lat=45.4&lng=-75.7")
     assert response.status_code == 422
 
 

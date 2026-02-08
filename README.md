@@ -22,7 +22,7 @@ poetry install
 # Copy environment file
 cp .env.example .env
 
-# Start PostgreSQL
+# Start PostgreSQL + Redis
 docker-compose up -d
 
 # Run database migrations
@@ -40,6 +40,55 @@ poetry run python -m canpoli.cli.ingest_boundaries --geojson /path/to/boundaries
 # Start development server
 poetry run uvicorn canpoli.main:app --reload
 ```
+
+## Quickstart (10 minutes)
+
+```bash
+poetry install
+cp .env.example .env
+docker-compose up -d
+poetry run alembic upgrade head
+poetry run python -m canpoli.cli.ingest
+poetry run uvicorn canpoli.main:app --reload
+```
+
+Smoke test:
+
+```bash
+curl http://localhost:8000/health
+```
+
+If you have GNU Make installed, you can use `make setup` and `make dev` instead. See `docs/development.md`.
+
+## Architecture (High Level)
+
+Layered modules with one-way dependencies:
+
+- Routers -> Services -> Repositories -> Models
+- Routers -> Schemas
+
+See `docs/architecture.md` for details.
+
+## Ingestion Overview
+
+- `canpoli.cli.ingest`: core HoC data (representatives, ridings, parties).
+- `canpoli.cli.ingest_parliament`: roles, votes, bills, petitions, debates, expenditures.
+- `canpoli.cli.ingest_boundaries`: PostGIS riding boundaries for coordinate lookup.
+
+See `docs/ingestion.md` for when to run each flow and Lambda options.
+
+## Configuration
+
+Configuration is managed in `canpoli/config.py` and loaded from environment variables.
+See `docs/configuration.md` for a full reference (including `CORS_ORIGINS` JSON list format).
+
+## Docs
+
+- `docs/architecture.md`
+- `docs/development.md`
+- `docs/configuration.md`
+- `docs/ingestion.md`
+- `docs/deployment.md`
 
 ## API Endpoints
 
@@ -122,7 +171,7 @@ poetry run pytest
 # Run PostGIS integration tests (requires local PostGIS)
 # These use POSTGIS_TEST_DATABASE_URL to target the PostGIS service.
 POSTGIS_TEST_DATABASE_URL=postgresql+asyncpg://canpoli:canpoli_dev@localhost:5433/canpoli_test \
-  poetry run pytest tests/test_postgis_lookup.py tests/test_boundaries_ingest.py
+  poetry run pytest -m integration
 
 # Lint
 poetry run ruff check .

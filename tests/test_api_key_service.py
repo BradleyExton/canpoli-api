@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from sqlalchemy import select
 import pytest
 from fastapi import HTTPException
+from sqlalchemy import select
 
 from canpoli.api_keys import hash_api_key
 from canpoli.config import get_settings
@@ -66,9 +66,7 @@ async def test_rotate_api_key_requires_active_subscription(test_session, monkeyp
     response = await service.rotate_api_key(user.id)
     assert response.api_key.startswith("cpk_live_")
 
-    result = await test_session.execute(
-        select(ApiKey).where(ApiKey.user_id == user.id)
-    )
+    result = await test_session.execute(select(ApiKey).where(ApiKey.user_id == user.id))
     keys = list(result.scalars().all())
     assert len(keys) == 2
     assert sum(1 for key in keys if key.active) == 1
@@ -107,9 +105,7 @@ async def test_activate_or_create_for_user_creates_key(test_session, monkeypatch
     service = ApiKeyService(test_session, get_settings(), redis)
     await service.activate_or_create_for_user(user.id, "active")
 
-    result = await test_session.execute(
-        select(ApiKey).where(ApiKey.user_id == user.id)
-    )
+    result = await test_session.execute(select(ApiKey).where(ApiKey.user_id == user.id))
     api_key = result.scalar_one()
     assert api_key.active is True
 

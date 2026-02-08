@@ -12,7 +12,6 @@ from canpoli.config import get_settings
 from canpoli.database import get_session
 from canpoli.repositories import UserRepository
 
-
 _jwks_client: PyJWKClient | None = None
 
 

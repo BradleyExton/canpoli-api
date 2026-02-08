@@ -50,7 +50,10 @@ class BillingService:
         """Create a Stripe Checkout session for subscriptions."""
         if not self.settings.stripe_price_id:
             raise HTTPException(status_code=500, detail="Stripe price is not configured")
-        if not self.settings.stripe_checkout_success_url or not self.settings.stripe_checkout_cancel_url:
+        if (
+            not self.settings.stripe_checkout_success_url
+            or not self.settings.stripe_checkout_cancel_url
+        ):
             raise HTTPException(status_code=500, detail="Checkout URLs are not configured")
 
         billing = await self._ensure_customer(user)
@@ -90,7 +93,9 @@ class BillingService:
         data_object = event["data"]["object"]
 
         if event_type == "checkout.session.completed":
-            user_id = data_object.get("client_reference_id") or data_object.get("metadata", {}).get("user_id")
+            user_id = data_object.get("client_reference_id") or data_object.get("metadata", {}).get(
+                "user_id"
+            )
             if not user_id:
                 return
 
@@ -99,7 +104,9 @@ class BillingService:
 
             subscription = None
             if subscription_id:
-                subscription = await self._stripe_call(self.stripe.Subscription.retrieve, subscription_id)
+                subscription = await self._stripe_call(
+                    self.stripe.Subscription.retrieve, subscription_id
+                )
 
             billing = await self.billing_repo.get_by_user_id(user_id)
             if not billing:
@@ -110,10 +117,7 @@ class BillingService:
             if subscription:
                 billing.status = subscription.get("status")
                 billing.price_id = (
-                    subscription.get("items", {})
-                    .get("data", [{}])[0]
-                    .get("price", {})
-                    .get("id")
+                    subscription.get("items", {}).get("data", [{}])[0].get("price", {}).get("id")
                 )
                 if subscription.get("current_period_start") is not None:
                     billing.current_period_start = datetime.fromtimestamp(
@@ -142,10 +146,7 @@ class BillingService:
             billing.stripe_subscription_id = data_object.get("id")
             billing.status = data_object.get("status")
             billing.price_id = (
-                data_object.get("items", {})
-                .get("data", [{}])[0]
-                .get("price", {})
-                .get("id")
+                data_object.get("items", {}).get("data", [{}])[0].get("price", {}).get("id")
             )
             if data_object.get("current_period_start") is not None:
                 billing.current_period_start = datetime.fromtimestamp(

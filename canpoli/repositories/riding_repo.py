@@ -21,9 +21,7 @@ class RidingRepository(BaseRepository[Riding]):
     ) -> Riding:
         """Get existing riding or create new one."""
         result = await self.session.execute(
-            select(Riding)
-            .where(Riding.name == name)
-            .where(Riding.province == province)
+            select(Riding).where(Riding.name == name).where(Riding.province == province)
         )
         riding = result.scalar_one_or_none()
 
@@ -76,8 +74,6 @@ class RidingRepository(BaseRepository[Riding]):
     async def count_by_province(self, province: str) -> int:
         """Count ridings in a province."""
         result = await self.session.execute(
-            select(func.count())
-            .select_from(Riding)
-            .where(Riding.province == province)
+            select(func.count()).select_from(Riding).where(Riding.province == province)
         )
         return result.scalar_one()

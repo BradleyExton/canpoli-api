@@ -17,9 +17,7 @@ class ApiKeyRepository(BaseRepository[ApiKey]):
 
     async def get_by_hash(self, key_hash: str) -> ApiKey | None:
         """Fetch API key by hash."""
-        result = await self.session.execute(
-            select(ApiKey).where(ApiKey.key_hash == key_hash)
-        )
+        result = await self.session.execute(select(ApiKey).where(ApiKey.key_hash == key_hash))
         return result.scalar_one_or_none()
 
     async def get_active_for_user(self, user_id: str) -> ApiKey | None:

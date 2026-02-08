@@ -15,9 +15,9 @@ from canpoli.repositories import (
 from canpoli.schemas import (
     RepresentativeDetailResponse,
     RepresentativeListResponse,
-    RepresentativeRoleSummary,
     RepresentativeRoleListResponse,
     RepresentativeRoleResponse,
+    RepresentativeRoleSummary,
 )
 
 router = APIRouter(
@@ -31,11 +31,19 @@ async def list_representatives(
     session: Annotated[AsyncSession, Depends(get_session)],
     province: Annotated[
         str | None,
-        Query(description="Filter by province (e.g., 'Ontario', 'Quebec')", min_length=2, max_length=50),
+        Query(
+            description="Filter by province (e.g., 'Ontario', 'Quebec')",
+            min_length=2,
+            max_length=50,
+        ),
     ] = None,
     party: Annotated[
         str | None,
-        Query(description="Filter by party name (e.g., 'Liberal', 'Conservative')", min_length=2, max_length=100),
+        Query(
+            description="Filter by party name (e.g., 'Liberal', 'Conservative')",
+            min_length=2,
+            max_length=100,
+        ),
     ] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
@@ -52,9 +60,7 @@ async def list_representatives(
     total = await repo.count_with_filters(province=province, party=party)
 
     return RepresentativeListResponse(
-        representatives=[
-            RepresentativeDetailResponse.model_validate(r) for r in representatives
-        ],
+        representatives=[RepresentativeDetailResponse.model_validate(r) for r in representatives],
         total=total,
         limit=limit,
         offset=offset,
@@ -64,9 +70,7 @@ async def list_representatives(
 @router.get("/lookup", response_model=RepresentativeDetailResponse)
 async def lookup_representative(
     session: Annotated[AsyncSession, Depends(get_session)],
-    postal_code: Annotated[
-        str | None, Query(description="Canadian postal code")
-    ] = None,
+    postal_code: Annotated[str | None, Query(description="Canadian postal code")] = None,
     lat: Annotated[float | None, Query(ge=-90, le=90)] = None,
     lng: Annotated[float | None, Query(ge=-180, le=180)] = None,
 ) -> RepresentativeDetailResponse:
@@ -135,9 +139,7 @@ async def get_representative(
     roles_repo = RepresentativeRoleRepository(session)
     roles = await roles_repo.list_current_for_representative(rep.id)
     response = RepresentativeDetailResponse.model_validate(rep)
-    response.current_roles = [
-        RepresentativeRoleSummary.model_validate(role) for role in roles
-    ]
+    response.current_roles = [RepresentativeRoleSummary.model_validate(role) for role in roles]
     return response
 
 

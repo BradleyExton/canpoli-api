@@ -2,8 +2,8 @@
 
 import pytest
 
-from canpoli.config import get_settings
 from canpoli import redis_client
+from canpoli.config import get_settings
 from canpoli.redis_client import InMemoryRedis, get_redis
 
 

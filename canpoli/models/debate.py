@@ -34,9 +34,7 @@ class Debate(Base, TimestampMixin):
     document_url: Mapped[str | None] = mapped_column(String(500))
     source_hash: Mapped[str | None] = mapped_column(String(64))
 
-    interventions: Mapped[list[DebateIntervention]] = relationship(
-        back_populates="debate"
-    )
+    interventions: Mapped[list[DebateIntervention]] = relationship(back_populates="debate")
 
     __table_args__ = (
         Index("ix_debates_parl_session", "parliament", "session"),

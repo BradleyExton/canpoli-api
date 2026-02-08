@@ -22,7 +22,9 @@ async def list_petitions(
     session: Annotated[AsyncSession, Depends(get_session)],
     status: Annotated[str | None, Query(description="Filter by status")] = None,
     sponsor_hoc_id: Annotated[int | None, Query(description="Filter by sponsor HoC ID")] = None,
-    from_date: Annotated[date | None, Query(description="Filter by presentation date (from)")] = None,
+    from_date: Annotated[
+        date | None, Query(description="Filter by presentation date (from)")
+    ] = None,
     to_date: Annotated[date | None, Query(description="Filter by presentation date (to)")] = None,
     parliament: Annotated[int | None, Query(description="Filter by parliament number")] = None,
     session_number: Annotated[int | None, Query(description="Filter by session number")] = None,

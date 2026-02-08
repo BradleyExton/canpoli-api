@@ -4,19 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
-
-import json
-import os
+import urllib.request
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-
-import urllib.request
+from typing import Any
 
 from canpoli.cli.ingest_boundaries import ingest_boundaries
+from canpoli.config import get_settings
+from canpoli.sentry import init_sentry
 from canpoli.services.hoc_ingestion import HoCIngestionService
 from canpoli.services.hoc_parliament_ingestion import HoCParliamentIngestionService
-from canpoli.sentry import init_sentry
 
 logger = logging.getLogger(__name__)
 init_sentry()
@@ -33,15 +30,12 @@ def _download_to_temp(url: str) -> Path:
 
 def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """Run House of Commons ingestion (and optional boundary refresh)."""
+    settings = get_settings()
     logger.info("Starting scheduled HoC ingestion")
     stats = asyncio.run(HoCIngestionService().ingest())
     logger.info("HoC ingestion complete: %s", stats)
 
-    parliament_ingest = os.environ.get("ENABLE_PARLIAMENT_INGEST", "").lower() in {
-        "1",
-        "true",
-        "yes",
-    }
+    parliament_ingest = settings.enable_parliament_ingest
     if parliament_ingest:
         logger.info("Starting parliamentary ingestion")
         parliament_stats = asyncio.run(HoCParliamentIngestionService().ingest())
@@ -49,7 +43,7 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     else:
         parliament_stats = None
 
-    boundary_url = os.environ.get("BOUNDARY_GEOJSON_URL")
+    boundary_url = settings.boundary_geojson_url
     if boundary_url:
         logger.info("Refreshing boundaries from %s", boundary_url)
         tmp_path = _download_to_temp(boundary_url)

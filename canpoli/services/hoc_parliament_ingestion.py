@@ -33,7 +33,6 @@ from canpoli.repositories import (
     PartyRepository,
     PartyStandingRepository,
     PetitionRepository,
-    RepresentativeRepository,
     RepresentativeRoleRepository,
     VoteMemberRepository,
     VoteRepository,
@@ -181,7 +180,6 @@ class HoCParliamentIngestionService:
         """Ingest MP roles for current representatives."""
         stats = {"representatives": 0, "roles": 0, "errors": 0}
         async with get_session_context() as session:
-            rep_repo = RepresentativeRepository(session)
             role_repo = RepresentativeRoleRepository(session)
 
             reps_result = await session.execute(
@@ -233,7 +231,8 @@ class HoCParliamentIngestionService:
         for role in root.findall(".//CaucusMemberRole"):
             roles.append(
                 {
-                    "role_name": (role.findtext("CaucusShortName") or "").strip() or "Caucus Member",
+                    "role_name": (role.findtext("CaucusShortName") or "").strip()
+                    or "Caucus Member",
                     "role_type": "caucus",
                     "organization": None,
                     "parliament": _to_int(role.findtext("ParliamentNumber")),
@@ -337,11 +336,7 @@ class HoCParliamentIngestionService:
             decision = _strip_text(cells[4].get_text())
             vote_date = _parse_date(_strip_text(cells[5].get_text()))
             detail_href = link.get("href") if link else None
-            detail_url = (
-                f"https://www.ourcommons.ca{detail_href}"
-                if detail_href
-                else None
-            )
+            detail_url = f"https://www.ourcommons.ca{detail_href}" if detail_href else None
             bill_number = _extract_bill_number(subject)
             votes.append(
                 {
@@ -460,7 +455,9 @@ class HoCParliamentIngestionService:
                 name_cell = cells[0]
                 link = name_cell.find("a")
                 hoc_id = None
-                member_name = _strip_text(link.get_text()) if link else _strip_text(name_cell.get_text())
+                member_name = (
+                    _strip_text(link.get_text()) if link else _strip_text(name_cell.get_text())
+                )
                 if link and link.get("href"):
                     hoc_id = _parse_int(link.get("href").strip("/").split("/")[-1])
                 riding_name = None
@@ -537,7 +534,11 @@ class HoCParliamentIngestionService:
                         petition_number = _strip_text(spans[0].get_text()) if spans else None
                         if not petition_number:
                             continue
-                        title_text = _strip_text(spans[1].get_text()) if len(spans) > 1 else _strip_text(link.get_text())
+                        title_text = (
+                            _strip_text(spans[1].get_text())
+                            if len(spans) > 1
+                            else _strip_text(link.get_text())
+                        )
 
                         status_text = _strip_text(cells[3].get_text(" "))
                         sponsor_name = _strip_text(cells[4].get_text())
@@ -926,7 +927,9 @@ class HoCParliamentIngestionService:
                 for row in rows[3:]:
                     if not row or not row[0].strip():
                         continue
-                    row_data = {headers[i]: row[i] if i < len(row) else "" for i in range(len(headers))}
+                    row_data = {
+                        headers[i]: row[i] if i < len(row) else "" for i in range(len(headers))
+                    }
                     role_title = row_data.get("Role")
                     officer_name = row_data.get("Name")
 
@@ -1080,7 +1083,9 @@ def _parse_datetime(value: str | None) -> datetime | None:
 def _parse_date_range(text: str | None) -> tuple[date | None, date | None]:
     if not text:
         return None, None
-    match = re.search(r"From\s+([A-Za-z]+\s+\d{1,2},\s+\d{4})\s+to\s+([A-Za-z]+\s+\d{1,2},\s+\d{4})", text)
+    match = re.search(
+        r"From\s+([A-Za-z]+\s+\d{1,2},\s+\d{4})\s+to\s+([A-Za-z]+\s+\d{1,2},\s+\d{4})", text
+    )
     if not match:
         return None, None
     start = _parse_date(match.group(1))

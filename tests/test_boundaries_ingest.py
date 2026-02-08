@@ -1,14 +1,15 @@
 """Boundary ingestion tests."""
 
-from pathlib import Path
 import json
+from pathlib import Path
 
 import pytest
-
 from sqlalchemy import text
 
 from canpoli.cli.ingest_boundaries import ingest_boundaries
 from canpoli.repositories import RidingRepository
+
+pytestmark = pytest.mark.integration
 
 
 @pytest.mark.asyncio

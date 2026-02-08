@@ -21,9 +21,7 @@ class VoteMember(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     vote_id: Mapped[int] = mapped_column(ForeignKey("votes.id"), nullable=False)
-    representative_id: Mapped[int | None] = mapped_column(
-        ForeignKey("representatives.id")
-    )
+    representative_id: Mapped[int | None] = mapped_column(ForeignKey("representatives.id"))
 
     hoc_id: Mapped[int | None] = mapped_column()
     member_name: Mapped[str] = mapped_column(String(200), nullable=False)

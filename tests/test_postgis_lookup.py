@@ -8,6 +8,8 @@ from sqlalchemy import text
 from canpoli.models import Representative, Riding
 from canpoli.repositories import RepresentativeRepository, RidingRepository
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.mark.asyncio
 async def test_get_by_point_inside_polygon(postgis_session):

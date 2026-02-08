@@ -14,9 +14,7 @@ def init_sentry() -> None:
     if not settings.sentry_dsn:
         return
 
-    environment = settings.sentry_environment or (
-        "development" if settings.debug else "production"
-    )
+    environment = settings.sentry_environment or ("development" if settings.debug else "production")
 
     init_kwargs: dict[str, object] = {
         "dsn": settings.sentry_dsn,

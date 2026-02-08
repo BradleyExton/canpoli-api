@@ -7,7 +7,6 @@ from functools import lru_cache
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 _env_file = None
 _env_file_override = os.environ.get("CANPOLI_ENV_FILE")
 if _env_file_override is not None:
@@ -120,6 +119,16 @@ class Settings(BaseSettings):
     )
     debug: bool = False
     log_level: str = "INFO"
+
+    # Lambda ingestion toggles
+    enable_parliament_ingest: bool = Field(
+        default=False,
+        description="Enable parliamentary data ingestion in scheduled Lambda runs.",
+    )
+    boundary_geojson_url: str | None = Field(
+        default=None,
+        description="Optional GeoJSON URL for boundary refresh during ingestion.",
+    )
 
 
 @lru_cache

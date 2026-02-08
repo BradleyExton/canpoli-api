@@ -22,9 +22,5 @@ class Billing(TimestampMixin, Base):
     stripe_subscription_id: Mapped[str | None] = mapped_column(String(128))
     status: Mapped[str | None] = mapped_column(String(32))
     price_id: Mapped[str | None] = mapped_column(String(128))
-    current_period_start: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
-    current_period_end: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    current_period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

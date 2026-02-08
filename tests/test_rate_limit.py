@@ -1,11 +1,12 @@
 """Tests for rate limiting helpers."""
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
+from canpoli import redis_client
 from canpoli.api_keys import hash_api_key
 from canpoli.config import get_settings
 from canpoli.models import ApiKey, Billing, User
@@ -17,7 +18,6 @@ from canpoli.rate_limit import (
     is_subscription_active,
     rate_limit_dependency,
 )
-from canpoli import redis_client
 
 
 def _make_request(headers=None, client=None) -> Request:

@@ -27,16 +27,12 @@ class BaseRepository(Generic[ModelType]):
         offset: int = 0,
     ) -> list[ModelType]:
         """Get all records with pagination."""
-        result = await self.session.execute(
-            select(self.model).limit(limit).offset(offset)
-        )
+        result = await self.session.execute(select(self.model).limit(limit).offset(offset))
         return list(result.scalars().all())
 
     async def count(self) -> int:
         """Count total records."""
-        result = await self.session.execute(
-            select(func.count()).select_from(self.model)
-        )
+        result = await self.session.execute(select(func.count()).select_from(self.model))
         return result.scalar_one()
 
     async def create(self, **kwargs) -> ModelType:

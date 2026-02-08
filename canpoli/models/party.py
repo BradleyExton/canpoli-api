@@ -24,9 +24,7 @@ class Party(Base, TimestampMixin):
     color: Mapped[str | None] = mapped_column(String(7))  # Hex color "#D71920"
 
     # Relationships
-    representatives: Mapped[list[Representative]] = relationship(
-        back_populates="party"
-    )
+    representatives: Mapped[list[Representative]] = relationship(back_populates="party")
 
     __table_args__ = (
         # Explicit index for name lookups (unique constraint also creates one)

@@ -37,7 +37,9 @@ def test_pick_field_auto():
         {"properties": {"foo": "bar"}},
         {"properties": {"district_name": "Riding"}},
     ]
-    assert ingest_boundaries._pick_field(features, None, ["district_name", "name"]) == "district_name"
+    assert (
+        ingest_boundaries._pick_field(features, None, ["district_name", "name"]) == "district_name"
+    )
 
 
 @pytest.mark.asyncio

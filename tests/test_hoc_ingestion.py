@@ -1,7 +1,7 @@
 """Tests for House of Commons ingestion service."""
 
-import pytest
 import httpx
+import pytest
 
 from canpoli.exceptions import IngestionError
 from canpoli.services.hoc_ingestion import HoCIngestionService

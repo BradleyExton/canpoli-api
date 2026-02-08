@@ -20,9 +20,7 @@ router = APIRouter(
 def _serialize_debate(debate, include_interventions: bool) -> DebateResponse:
     interventions = None
     if include_interventions and debate.interventions is not None:
-        interventions = [
-            DebateInterventionResponse.model_validate(i) for i in debate.interventions
-        ]
+        interventions = [DebateInterventionResponse.model_validate(i) for i in debate.interventions]
     return DebateResponse(
         id=debate.id,
         parliament=debate.parliament,

@@ -14,12 +14,8 @@ class VoteMemberRepository(BaseRepository[VoteMember]):
         super().__init__(session, VoteMember)
 
     async def delete_by_vote_id(self, vote_id: int) -> None:
-        await self.session.execute(
-            delete(VoteMember).where(VoteMember.vote_id == vote_id)
-        )
+        await self.session.execute(delete(VoteMember).where(VoteMember.vote_id == vote_id))
 
     async def list_by_vote_id(self, vote_id: int) -> list[VoteMember]:
-        result = await self.session.execute(
-            select(VoteMember).where(VoteMember.vote_id == vote_id)
-        )
+        result = await self.session.execute(select(VoteMember).where(VoteMember.vote_id == vote_id))
         return list(result.scalars().all())

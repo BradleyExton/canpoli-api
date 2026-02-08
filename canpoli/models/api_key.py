@@ -28,9 +28,5 @@ class ApiKey(TimestampMixin, Base):
     key_prefix: Mapped[str] = mapped_column(String(24), nullable=False)
     key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    revoked_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    last_used_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

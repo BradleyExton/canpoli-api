@@ -84,6 +84,7 @@ def test_extract_email_priority():
 @pytest.mark.asyncio
 async def test_get_current_user_creates_and_updates(test_session, monkeypatch):
     """Current user is created on first auth and updated on email change."""
+
     async def _verify_one(_token):
         return {"sub": "user-123", "email": "one@example.com"}
 

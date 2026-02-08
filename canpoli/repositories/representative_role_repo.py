@@ -46,9 +46,7 @@ class RepresentativeRoleRepository(BaseRepository[RepresentativeRole]):
         limit: int = 100,
         offset: int = 0,
     ) -> list[RepresentativeRole]:
-        query = select(RepresentativeRole).options(
-            selectinload(RepresentativeRole.representative)
-        )
+        query = select(RepresentativeRole).options(selectinload(RepresentativeRole.representative))
         query = self._apply_filters(query, hoc_id, role_type, current, parliament, session)
         query = query.order_by(RepresentativeRole.start_date.desc().nullslast())
         query = query.limit(limit).offset(offset)

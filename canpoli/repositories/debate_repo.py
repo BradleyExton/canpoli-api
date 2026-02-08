@@ -50,7 +50,9 @@ class DebateRepository(BaseRepository[Debate]):
     ) -> list[Debate]:
         query = select(Debate)
         query = self._apply_filters(query, debate_date, language, sitting, parliament, session)
-        query = query.order_by(Debate.debate_date.desc().nullslast(), Debate.sitting.desc().nullslast())
+        query = query.order_by(
+            Debate.debate_date.desc().nullslast(), Debate.sitting.desc().nullslast()
+        )
         query = query.limit(limit).offset(offset)
         result = await self.session.execute(query)
         return list(result.scalars().all())
@@ -86,9 +88,7 @@ class DebateRepository(BaseRepository[Debate]):
 
     async def get_with_interventions(self, debate_id: int) -> Debate | None:
         result = await self.session.execute(
-            select(Debate)
-            .options(selectinload(Debate.interventions))
-            .where(Debate.id == debate_id)
+            select(Debate).options(selectinload(Debate.interventions)).where(Debate.id == debate_id)
         )
         return result.scalar_one_or_none()
 

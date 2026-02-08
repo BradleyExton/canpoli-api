@@ -21,11 +21,10 @@ os.environ.setdefault(
 os.environ["REDIS_URL"] = ""
 os.environ.setdefault("ENVIRONMENT", "test")
 
+from canpoli import redis_client  # noqa: E402
+from canpoli.config import get_settings  # noqa: E402
 from canpoli.database import get_session  # noqa: E402
 from canpoli.main import app  # noqa: E402
-
-from canpoli.config import get_settings  # noqa: E402
-from canpoli import redis_client  # noqa: E402
 
 # Test database URL (SQLite in-memory for speed)
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"

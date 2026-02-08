@@ -22,7 +22,11 @@ async def list_ridings(
     session: Annotated[AsyncSession, Depends(get_session)],
     province: Annotated[
         str | None,
-        Query(description="Filter by province (e.g., 'Ontario', 'Quebec')", min_length=2, max_length=50),
+        Query(
+            description="Filter by province (e.g., 'Ontario', 'Quebec')",
+            min_length=2,
+            max_length=50,
+        ),
     ] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,

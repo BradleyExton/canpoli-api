@@ -1,10 +1,10 @@
 """Tests for Stripe client helper."""
 
 import pytest
+import stripe as stripe_module
 
 from canpoli.config import get_settings
 from canpoli.stripe_client import get_stripe
-import stripe as stripe_module
 
 
 def test_get_stripe_missing_secret(monkeypatch):

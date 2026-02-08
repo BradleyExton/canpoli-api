@@ -23,7 +23,9 @@ async def list_bills(
     bill_number: Annotated[str | None, Query(description="Filter by bill number")] = None,
     status: Annotated[str | None, Query(description="Filter by bill status")] = None,
     sponsor_hoc_id: Annotated[int | None, Query(description="Filter by sponsor HoC ID")] = None,
-    updated_since: Annotated[datetime | None, Query(description="Filter by latest activity datetime")] = None,
+    updated_since: Annotated[
+        datetime | None, Query(description="Filter by latest activity datetime")
+    ] = None,
     parliament: Annotated[int | None, Query(description="Filter by parliament number")] = None,
     session_number: Annotated[int | None, Query(description="Filter by session number")] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,

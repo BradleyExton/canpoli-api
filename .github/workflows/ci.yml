@@ -33,5 +33,11 @@ jobs:
         run: pip install poetry
       - name: Install dependencies
         run: poetry install
+      - name: Lint
+        run: poetry run ruff check .
+      - name: Format check
+        run: poetry run ruff format --check .
+      - name: Type check
+        run: poetry run mypy canpoli
       - name: Run tests
         run: poetry run pytest --cov=canpoli --cov-report=term-missing --cov-report=xml

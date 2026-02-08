@@ -14,8 +14,8 @@ from canpoli.logging_config import setup_logging
 from canpoli.rate_limit import increment_usage
 from canpoli.routers import (
     account_router,
-    bills_router,
     billing_router,
+    bills_router,
     debates_router,
     expenditures_router,
     health_router,
@@ -23,8 +23,8 @@ from canpoli.routers import (
     party_standings_router,
     petitions_router,
     representatives_router,
-    roles_router,
     ridings_router,
+    roles_router,
     votes_router,
 )
 from canpoli.sentry import init_sentry
@@ -109,9 +109,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(votes_router, prefix="/v1/votes", include_in_schema=False)
     app.include_router(petitions_router, prefix="/v1/petitions", include_in_schema=False)
     app.include_router(debates_router, prefix="/v1/debates", include_in_schema=False)
-    app.include_router(
-        expenditures_router, prefix="/v1/expenditures", include_in_schema=False
-    )
+    app.include_router(expenditures_router, prefix="/v1/expenditures", include_in_schema=False)
 
     @app.middleware("http")
     async def usage_middleware(request: Request, call_next):

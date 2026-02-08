@@ -19,9 +19,7 @@ class MemberExpenditure(Base, TimestampMixin):
     __tablename__ = "member_expenditures"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    representative_id: Mapped[int | None] = mapped_column(
-        ForeignKey("representatives.id")
-    )
+    representative_id: Mapped[int | None] = mapped_column(ForeignKey("representatives.id"))
     hoc_id: Mapped[int | None] = mapped_column()
     member_name: Mapped[str] = mapped_column(String(200), nullable=False)
 

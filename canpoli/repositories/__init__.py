@@ -13,9 +13,9 @@ from canpoli.repositories.member_expenditure_repo import MemberExpenditureReposi
 from canpoli.repositories.party_repo import PartyRepository
 from canpoli.repositories.party_standing_repo import PartyStandingRepository
 from canpoli.repositories.petition_repo import PetitionRepository
-from canpoli.repositories.riding_repo import RidingRepository
 from canpoli.repositories.representative_repo import RepresentativeRepository
 from canpoli.repositories.representative_role_repo import RepresentativeRoleRepository
+from canpoli.repositories.riding_repo import RidingRepository
 from canpoli.repositories.user_repo import UserRepository
 from canpoli.repositories.vote_member_repo import VoteMemberRepository
 from canpoli.repositories.vote_repo import VoteRepository

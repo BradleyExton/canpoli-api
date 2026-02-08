@@ -15,9 +15,7 @@ class BillingRepository(BaseRepository[Billing]):
 
     async def get_by_user_id(self, user_id: str) -> Billing | None:
         """Fetch billing record by user id."""
-        result = await self.session.execute(
-            select(Billing).where(Billing.user_id == user_id)
-        )
+        result = await self.session.execute(select(Billing).where(Billing.user_id == user_id))
         return result.scalar_one_or_none()
 
     async def get_by_customer_id(self, customer_id: str) -> Billing | None:

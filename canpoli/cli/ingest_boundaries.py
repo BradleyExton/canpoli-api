@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -17,8 +18,6 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from canpoli.database import get_session_context
-import re
-
 from canpoli.repositories import RepresentativeRepository, RidingRepository
 
 PROVINCE_ABBREV_TO_NAME = {
@@ -136,18 +135,12 @@ async def ingest_boundaries(
         raise ValueError("GeoJSON has no features")
 
     resolved_name_field = _pick_field(features, name_field, DEFAULT_NAME_FIELDS)
-    resolved_province_field = _pick_field(
-        features, province_field, DEFAULT_PROVINCE_FIELDS
-    )
+    resolved_province_field = _pick_field(features, province_field, DEFAULT_PROVINCE_FIELDS)
 
     if not resolved_name_field:
-        raise ValueError(
-            "Could not detect riding name field. Pass --name-field explicitly."
-        )
+        raise ValueError("Could not detect riding name field. Pass --name-field explicitly.")
     if not resolved_province_field:
-        raise ValueError(
-            "Could not detect province field. Pass --province-field explicitly."
-        )
+        raise ValueError("Could not detect province field. Pass --province-field explicitly.")
 
     async def _ingest(active_session: AsyncSession) -> None:
         repo = RidingRepository(active_session)
@@ -218,9 +211,7 @@ async def ingest_boundaries(
 
 
 async def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Ingest riding boundary GeoJSON into PostGIS."
-    )
+    parser = argparse.ArgumentParser(description="Ingest riding boundary GeoJSON into PostGIS.")
     parser.add_argument(
         "--geojson",
         required=True,

@@ -29,9 +29,7 @@ class Riding(Base, TimestampMixin):
     )
 
     # Relationships
-    representatives: Mapped[list[Representative]] = relationship(
-        back_populates="riding"
-    )
+    representatives: Mapped[list[Representative]] = relationship(back_populates="riding")
 
     __table_args__ = (
         Index("ix_ridings_province", "province"),

@@ -15,7 +15,5 @@ class UserRepository(BaseRepository[User]):
 
     async def get_by_auth_user_id(self, auth_user_id: str) -> User | None:
         """Fetch user by auth provider user id."""
-        result = await self.session.execute(
-            select(User).where(User.auth_user_id == auth_user_id)
-        )
+        result = await self.session.execute(select(User).where(User.auth_user_id == auth_user_id))
         return result.scalar_one_or_none()
